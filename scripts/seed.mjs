@@ -8,9 +8,14 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 const projectRoot = join(__dirname, '..');
 const dbName = 'bid-data';
 
+const isLocal = process.argv.includes('--local');
+
 const execWrangler = (command) => {
+  const remoteFlag = isLocal ? '' : '--remote';
+  const commandString = `npx wrangler d1 execute ${dbName} ${remoteFlag} --config wrangler.toml --command "${command}"`;
+  
   return new Promise((resolve, reject) => {
-    exec(`npx wrangler d1 execute ${dbName} --remote --command "${command}"`, { cwd: projectRoot, maxBuffer: 1024 * 1024 * 10 }, (error, stdout, stderr) => {
+    exec(commandString, { cwd: projectRoot, maxBuffer: 1024 * 1024 * 10 }, (error, stdout, stderr) => {
       if (error) {
         console.error(`exec error: ${error}`);
         console.error(`stderr: ${stderr}`);
@@ -38,7 +43,7 @@ const batchInsertCompanies = async (records) => {
     try {
         await execWrangler(sql);
     } catch (e) {
-        console.error(`Failed to insert a batch into companies.`);
+        console.error(`Failed to insert a batch into companies.`, e);
     }
 };
 
@@ -54,7 +59,7 @@ const batchInsertBids = async (records) => {
     try {
         await execWrangler(sql);
     } catch (e) {
-        console.error(`Failed to insert a batch into bids.`);
+        console.error(`Failed to insert a batch into bids.`, e);
     }
 };
 
@@ -115,7 +120,7 @@ async function main() {
         const filePath = join(dataDir, file);
         const parser = createReadStream(filePath, { encoding: 'utf8' }).pipe(parse({ from_line: 1, relax_column_count: true, bom: true }));
         let recordsBatch = [];
-        const batchSize = 1000; // User requested chunk size
+        const batchSize = 500; // User requested chunk size
 
         for await (const record of parser) {
             if (record.length === 8 && record[0]) {

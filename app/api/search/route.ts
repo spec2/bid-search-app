@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getRequestContext } from '@opennextjs/cloudflare/next';
+import { getCloudflareContext } from '@opennextjs/cloudflare';
 
 interface Bid {
   調達案件名称: string;
@@ -11,21 +11,21 @@ interface Bid {
 }
 
 export async function GET(req: NextRequest) {
-  const { searchParams } = new URL(req.url);
-  const query = searchParams.get('q') || '';
-
-  // Correct way to access bindings with @opennextjs/cloudflare
-  const { env } = getRequestContext();
-  const db = env.DB;
-
-  if (!db) {
-    return NextResponse.json({ error: 'Database binding not found' }, { status: 500 });
-  }
-
-  const searchTerm = `%${query}%`;
-  const limit = 50;
-
   try {
+    const { searchParams } = new URL(req.url);
+    const query = searchParams.get('q') || '';
+
+    // Correct way to access bindings with @opennextjs/cloudflare
+    const { env } = getCloudflareContext();
+    const db = env.DB;
+
+    if (!db) {
+      return NextResponse.json({ error: 'Database binding not found' }, { status: 500 });
+    }
+
+    const searchTerm = `%${query}%`;
+    const limit = 50;
+
     const stmt = db.prepare(`
       SELECT
         b.調達案件名称,
@@ -48,8 +48,9 @@ export async function GET(req: NextRequest) {
     const { results } = await stmt.all<Bid>();
 
     return NextResponse.json(results);
-  } catch (e: any) {
-    console.error({ message: 'Failed to execute query', error: e.message });
-    return NextResponse.json({ error: 'Query failed', details: e.message }, { status: 500 });
+  } catch (e) {
+    const message = e instanceof Error ? e.message : String(e);
+    console.error({ message: 'Failed to execute query', error: message });
+    return NextResponse.json({ error: 'Query failed', details: message }, { status: 500 });
   }
 }
