@@ -25,36 +25,42 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: 'Database binding not found' }, { status: 500 });
     }
 
+    const hasKeyword = query.trim() !== '';
+    const hasFilters = ministry || startDate || endDate;
+
     const whereClauses = [];
     const bindings = [];
     let paramIndex = 1;
 
-    // Keywords search
-    if (query) {
-      const keywords = query.split(/\s+/).filter(Boolean); // Split by space and remove empty strings
-      const keywordClauses = keywords.map(keyword => {
-        bindings.push(`%${keyword}%`, `%${keyword}%`);
-        return `(b.調達案件名称 LIKE ?${paramIndex++} OR c.商号又は名称 LIKE ?${paramIndex++})`;
-      });
-      if (keywordClauses.length > 0) {
-        whereClauses.push(`(${keywordClauses.join(' AND ')})`);
+    // Only build WHERE clause if there are keywords or filters
+    if (hasKeyword || hasFilters) {
+      // Keywords search
+      if (hasKeyword) {
+        const keywords = query.split(/\s+/).filter(Boolean);
+        const keywordClauses = keywords.map(keyword => {
+          bindings.push(`%${keyword}%`, `%${keyword}%`);
+          return `(b.調達案件名称 LIKE ?${paramIndex++} OR c.商号又は名称 LIKE ?${paramIndex++})`;
+        });
+        if (keywordClauses.length > 0) {
+          whereClauses.push(`(${keywordClauses.join(' AND ')})`);
+        }
       }
-    }
 
-    // Ministry filter
-    if (ministry) {
-      whereClauses.push(`m.名称 = ?${paramIndex++}`);
-      bindings.push(ministry);
-    }
+      // Ministry filter
+      if (ministry) {
+        whereClauses.push(`m.名称 = ?${paramIndex++}`);
+        bindings.push(ministry);
+      }
 
-    // Date range filter
-    if (startDate) {
-      whereClauses.push(`b.落札決定日 >= ?${paramIndex++}`);
-      bindings.push(startDate);
-    }
-    if (endDate) {
-      whereClauses.push(`b.落札決定日 <= ?${paramIndex++}`);
-      bindings.push(endDate);
+      // Date range filter
+      if (startDate) {
+        whereClauses.push(`b.落札決定日 >= ?${paramIndex++}`);
+        bindings.push(startDate);
+      }
+      if (endDate) {
+        whereClauses.push(`b.落札決定日 <= ?${paramIndex++}`);
+        bindings.push(endDate);
+      }
     }
 
     const whereSql = whereClauses.length > 0 ? `WHERE ${whereClauses.join(' AND ')}` : '';
