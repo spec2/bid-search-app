@@ -44,7 +44,7 @@ const SearchForm = ({ onSearch, loading }: SearchFormProps) => {
           type="text"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          placeholder="キーワード (例: 燃料油)"
+          placeholder="案件名・事業者名 (例: 日本電気 カード)"
           className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
         />
         <select
