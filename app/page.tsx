@@ -5,6 +5,7 @@ import Header from './components/Header';
 import Footer from './components/Footer';
 import SearchForm from './components/SearchForm';
 import ResultsTable from './components/ResultsTable';
+import Pagination from './components/Pagination';
 
 // Define the structure of the search results
 interface Bid {
@@ -18,6 +19,7 @@ interface Bid {
 
 interface SearchParams {
   query: string;
+  company: string;
   ministry: string;
   startDate: string;
   endDate: string;
@@ -28,29 +30,51 @@ export default function Home() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [searched, setSearched] = useState(false);
+  const [totalCount, setTotalCount] = useState(0);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [currentSearch, setCurrentSearch] = useState<SearchParams | null>(null);
 
-  const handleSearch = async (params: SearchParams) => {
+  const limit = 50;
+  const totalPages = Math.ceil(totalCount / limit);
+
+  const executeSearch = async (params: SearchParams, page: number) => {
     setLoading(true);
     setError(null);
     setSearched(true);
+    setCurrentPage(page);
+    
     try {
       const searchParams = new URLSearchParams();
       if (params.query) searchParams.append('q', params.query);
+      if (params.company) searchParams.append('company', params.company);
       if (params.ministry) searchParams.append('ministry', params.ministry);
       if (params.startDate) searchParams.append('startDate', params.startDate);
       if (params.endDate) searchParams.append('endDate', params.endDate);
+      searchParams.append('page', page.toString());
 
       const response = await fetch(`/api/search?${searchParams.toString()}`);
       if (!response.ok) {
         throw new Error('Network response was not ok');
       }
       const data = await response.json();
-      setResults(data);
+      setResults(data.results);
+      setTotalCount(data.totalCount);
     } catch (e) {
       setError('検索結果の取得に失敗しました。');
       console.error(e);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleNewSearch = (params: SearchParams) => {
+    setCurrentSearch(params);
+    executeSearch(params, 1);
+  };
+
+  const handlePageChange = (page: number) => {
+    if (currentSearch) {
+      executeSearch(currentSearch, page);
     }
   };
 
@@ -66,15 +90,21 @@ export default function Home() {
           <p className="text-gray-600">
             入札サーチ.jpは、国や地方公共団体など、全国の官公庁から公開される膨大な入札・落札情報を集約した無料のデータベースです。<br />
             これまで各所に点在していた情報を一つにまとめ、案件名・事業者名でのキーワード検索はもちろん、期間や府省を指定して簡単に絞り込むことができます。<br />
-            あなたのビジネスを加速させる、価値ある情報を効率的に見つけ出すお手伝いをします。
+            手間のかかる情報収集は、もう必要ありません。あなたのビジネスを加速させる、価値ある情報を効率的に見つけ出すお手伝いをします。
           </p>
         </div>
 
-        <SearchForm onSearch={handleSearch} loading={loading} />
+        <SearchForm onSearch={handleNewSearch} loading={loading} />
 
         {error && <p className="text-center text-red-500 mb-4">{error}</p>}
 
         <ResultsTable results={results} loading={loading} searched={searched} />
+        
+        <Pagination 
+          currentPage={currentPage}
+          totalPages={totalPages}
+          onPageChange={handlePageChange}
+        />
       </main>
 
       <Footer />

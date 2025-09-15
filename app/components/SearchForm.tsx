@@ -3,12 +3,13 @@
 import { useState, useEffect } from 'react';
 
 interface SearchFormProps {
-  onSearch: (params: { query: string; ministry: string; startDate: string; endDate: string; }) => void;
+  onSearch: (params: { query: string; company: string; ministry: string; startDate: string; endDate: string; }) => void;
   loading: boolean;
 }
 
 const SearchForm = ({ onSearch, loading }: SearchFormProps) => {
   const [query, setQuery] = useState('');
+  const [company, setCompany] = useState('');
   const [ministry, setMinistry] = useState('');
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
@@ -33,18 +34,25 @@ const SearchForm = ({ onSearch, loading }: SearchFormProps) => {
   }, []);
 
   const handleSearchClick = () => {
-    onSearch({ query, ministry, startDate, endDate });
+    onSearch({ query, company, ministry, startDate, endDate });
   };
 
   return (
     <div className="bg-white p-6 rounded-lg shadow-md mb-8">
       {error && <p className="text-center text-red-500 mb-4">{error}</p>}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
         <input
           type="text"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          placeholder="案件名・事業者名 (例: 日本電気 カード)"
+          placeholder="案件名 (例: カード)"
+          className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+        />
+        <input
+          type="text"
+          value={company}
+          onChange={(e) => setCompany(e.target.value)}
+          placeholder="事業者名 (例: 日本電気)"
           className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
         />
         <select
