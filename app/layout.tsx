@@ -13,8 +13,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "官公庁の入札・落札情報検索 | 入札サーチ.jp",
-  description: "入札サーチ.jpは、全国の官公庁から公開される公共調達の入札・落札情報を、キーワード、府省、事業者名、期間で簡単に横断検索できる無料のデータベースです。",
+  title: "入札サーチ.jp | 全国の官公庁 入札・落札情報検索",
+  description: "入札サーチ.jpは、全国の官公庁が公開する入札・落札情報を、誰でも無料で検索できる公共調達データベースです。キーワードや期間、府省での絞り込みに対応し、ビジネスチャンスの発見をサポートします。",
 };
 
 export default function RootLayout({
