@@ -83,20 +83,19 @@ export default function Home() {
       <Header />
 
       <main className="flex-grow container mx-auto p-4 sm:p-8">
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-gray-800 mb-2">
+        <div className="text-center mb-12">
+          <h1 className="text-4xl font-bold tracking-tight text-foreground mb-4">
             その入札情報、ここで見つかります。
           </h1>
-          <p className="text-gray-600">
-            入札サーチ.jpは、国や地方公共団体など、全国の官公庁から公開される膨大な入札・落札情報を集約した無料のデータベースです。<br />
-            これまで各所に点在していた情報を一つにまとめ、案件名・事業者名でのキーワード検索はもちろん、期間や府省を指定して簡単に絞り込むことができます。<br />
+          <p className="text-lg text-muted-foreground max-w-3xl mx-auto">
+            入札サーチ.jpは、国や地方公共団体など、全国の官公庁から公開される膨大な入札・落札情報を集約した無料のデータベースです。
             手間のかかる情報収集は、もう必要ありません。あなたのビジネスを加速させる、価値ある情報を効率的に見つけ出すお手伝いをします。
           </p>
         </div>
 
         <SearchForm onSearch={handleNewSearch} loading={loading} />
 
-        {error && <p className="text-center text-red-500 mb-4">{error}</p>}
+        {error && <p className="text-center text-destructive mb-4">{error}</p>}
 
         <ResultsTable results={results} loading={loading} searched={searched} />
         
