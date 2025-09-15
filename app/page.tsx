@@ -95,29 +95,33 @@ export default function Home() {
       <Header />
 
       <main className="flex-grow container mx-auto p-4 sm:p-8">
-        <div className="text-center mb-12">
-          <h1 className="text-4xl font-bold tracking-tight text-foreground mb-4">
-            その入札情報、ここで見つかります。
-          </h1>
-          <p className="text-lg text-muted-foreground max-w-3xl mx-auto">
-            入札サーチ.jpは、国や地方公共団体など、全国の官公庁から公開される膨大な入札・落札情報を集約した無料のデータベースです。
-            手間のかかる情報収集は、もう必要ありません。あなたのビジネスを加速させる、価値ある情報を効率的に見つけ出すお手伝いをします。
-          </p>
+        <section className="text-center py-16 md:py-24 bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl mb-12">
+          <div className="container px-4 md:px-6">
+            <h1 className="text-4xl md:text-5xl font-bold tracking-tighter text-foreground mb-4">
+              その入札情報、ここで見つかります。
+            </h1>
+            <p className="text-lg text-muted-foreground max-w-3xl mx-auto">
+              入札サーチ.jpは、国や地方公共団体など、全国の官公庁から公開される膨大な入札・落札情報を集約した無料のデータベースです。
+              手間のかかる情報収集は、もう必要ありません。あなたのビジネスを加速させる、価値ある情報を効率的に見つけ出すお手伝いをします。
+            </p>
+          </div>
+        </section>
+
+        <div className="space-y-8">
+          <SearchForm onSearch={handleNewSearch} loading={loading} />
+
+          {error && <p className="text-center text-destructive mb-4">{error}</p>}
+          
+          <ResultsTable results={results} loading={loading} searched={searched} />
+          
+          {searched && results.length > 0 && (
+            <Pagination 
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onPageChange={handlePageChange}
+            />
+          )}
         </div>
-
-        <SearchForm onSearch={handleNewSearch} loading={loading} />
-
-        {error && <p className="text-center text-destructive mb-4">{error}</p>}
-
-        <ResultsTable results={results} loading={loading} searched={searched} />
-        
-        {searched && results.length > 0 && (
-          <Pagination 
-            currentPage={currentPage}
-            totalPages={totalPages}
-            onPageChange={handlePageChange}
-          />
-        )}
       </main>
 
       <Footer />

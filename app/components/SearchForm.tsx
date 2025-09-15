@@ -12,6 +12,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from "./ui/select";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "./ui/card";
 
 interface SearchFormProps {
   onSearch: (params: { query: string; company: string; ministry: string; startDate: string; endDate: string; }) => void;
@@ -49,74 +57,79 @@ const SearchForm = ({ onSearch, loading }: SearchFormProps) => {
   };
 
   return (
-    <div className="bg-card p-6 rounded-lg shadow-sm border">
-      {error && <p className="text-center text-destructive mb-4">{error}</p>}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 items-end">
-        <div className="space-y-2">
-          <Label htmlFor="query">案件名</Label>
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input
-              id="query"
-              type="text"
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              placeholder="例: PC"
-              className="pl-10"
-            />
+    <Card>
+      <CardHeader>
+        <CardTitle>入札・落札情報を検索</CardTitle>
+        <CardDescription>キーワードや期間、府省などの条件で絞り込めます。</CardDescription>
+      </CardHeader>
+      <CardContent>
+        {error && <p className="text-center text-destructive mb-4">{error}</p>}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 items-end">
+          <div className="space-y-2">
+            <Label htmlFor="query">案件名</Label>
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                id="query"
+                type="text"
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                placeholder="例: PC"
+                className="pl-10"
+              />
+            </div>
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="company">事業者名</Label>
+            <div className="relative">
+              <Building className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                id="company"
+                type="text"
+                value={company}
+                onChange={(e) => setCompany(e.target.value)}
+                placeholder="例: 日本電気"
+                className="pl-10"
+              />
+            </div>
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="ministry">府省</Label>
+            <Select value={ministry} onValueChange={(value) => setMinistry(value === 'all' ? '' : value)}>
+              <SelectTrigger>
+                <SelectValue placeholder="すべての府省" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">すべての府省</SelectItem>
+                {ministries.map(m => <SelectItem key={m} value={m}>{m}</SelectItem>)}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-2 md:col-span-2 lg:col-span-3">
+            <Label>期間</Label>
+            <div className="grid grid-cols-2 gap-4">
+              <Input
+                id="start-date"
+                type="date"
+                value={startDate}
+                onChange={(e) => setStartDate(e.target.value)}
+              />
+              <Input
+                id="end-date"
+                type="date"
+                value={endDate}
+                onChange={(e) => setEndDate(e.target.value)}
+              />
+            </div>
           </div>
         </div>
-        <div className="space-y-2">
-          <Label htmlFor="company">事業者名</Label>
-          <div className="relative">
-            <Building className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input
-              id="company"
-              type="text"
-              value={company}
-              onChange={(e) => setCompany(e.target.value)}
-              placeholder="例: 日本電気"
-              className="pl-10"
-            />
-          </div>
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="ministry">府省</Label>
-          <Select value={ministry} onValueChange={(value) => setMinistry(value === 'all' ? '' : value)}>
-            <SelectTrigger>
-              <SelectValue placeholder="すべての府省" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">すべての府省</SelectItem>
-              {ministries.map(m => <SelectItem key={m} value={m}>{m}</SelectItem>)}
-            </SelectContent>
-          </Select>
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="start-date">開始日</Label>
-          <Input
-            id="start-date"
-            type="date"
-            value={startDate}
-            onChange={(e) => setStartDate(e.target.value)}
-          />
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="end-date">終了日</Label>
-          <Input
-            id="end-date"
-            type="date"
-            value={endDate}
-            onChange={(e) => setEndDate(e.target.value)}
-          />
-        </div>
-      </div>
-      <div className="flex justify-center mt-6">
+      </CardContent>
+      <CardFooter className="flex justify-end">
         <Button onClick={handleSearchClick} disabled={loading} size="lg">
           {loading ? '検索中...' : <><Search className="mr-2 h-4 w-4" />検索</>}
         </Button>
-      </div>
-    </div>
+      </CardFooter>
+    </Card>
   );
 };
 
