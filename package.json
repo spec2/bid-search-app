@@ -6,7 +6,7 @@
 		"dev": "next dev",
 		"build": "next build",
 		"preview": "opennextjs-cloudflare build && npx wrangler dev .open-next/worker.js --local --assets .open-next/assets --config wrangler.toml",
-		"deploy": "opennextjs-cloudflare build && opennextjs-cloudflare deploy",
+		"deploy": "opennextjs-cloudflare build && npx wrangler deploy",
 		"start": "next start",
 		"lint": "next lint",
 		"db:seed": "node ./scripts/seed.mjs"
@@ -24,6 +24,7 @@
 		"@types/react": "19.0.10",
 		"@types/react-dom": "19.0.4",
 		"csv-parse": "^6.1.0",
+		"dotenv": "^17.2.2",
 		"esbuild": "^0.25.9",
 		"eslint": "9.27.0",
 		"eslint-config-next": "15.3.3",

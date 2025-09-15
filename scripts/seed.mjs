@@ -1,8 +1,11 @@
 import { exec } from 'child_process';
-import { createReadStream, readdirSync } from 'fs';
+import { createReadStream } from 'fs';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
 import { parse } from 'csv-parse';
+import dotenv from 'dotenv';
+
+dotenv.config();
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const projectRoot = join(__dirname, '..');
@@ -12,7 +15,9 @@ const isLocal = process.argv.includes('--local');
 
 const execWrangler = (command) => {
   const remoteFlag = isLocal ? '' : '--remote';
-  const commandString = `npx wrangler d1 execute ${dbName} ${remoteFlag} --config wrangler.toml --command "${command}"`;
+  // Pass environment variables directly to the child process
+  const envVars = `CLOUDFLARE_API_TOKEN=${process.env.CLOUDFLARE_API_TOKEN} CLOUDFLARE_ACCOUNT_ID=${process.env.CLOUDFLARE_ACCOUNT_ID}`;
+  const commandString = `${envVars} npx wrangler d1 execute ${dbName} ${remoteFlag} --config wrangler.toml --command "${command}"`;
   
   return new Promise((resolve, reject) => {
     exec(commandString, { cwd: projectRoot, maxBuffer: 1024 * 1024 * 10 }, (error, stdout, stderr) => {
