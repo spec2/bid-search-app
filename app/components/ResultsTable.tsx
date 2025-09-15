@@ -20,6 +20,10 @@ const formatPrice = (price: number) => {
 }
 
 const ResultsTable = ({ results, loading, searched }: ResultsTableProps) => {
+  if (!searched) {
+    return null;
+  }
+
   return (
     <div className="overflow-x-auto">
       <table className="min-w-full bg-white border border-gray-200 shadow-sm rounded-lg">
@@ -38,6 +42,7 @@ const ResultsTable = ({ results, loading, searched }: ResultsTableProps) => {
             <tr>
               <td colSpan={6} className="text-center py-12 text-gray-500">検索中...</td>
             </tr>
+
           ) : results.length > 0 ? (
             results.map((bid, index) => (
               <tr key={index} className="hover:bg-gray-50 transition-colors">
@@ -49,7 +54,7 @@ const ResultsTable = ({ results, loading, searched }: ResultsTableProps) => {
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">{bid.bid_method_name}</td>
               </tr>
             ))
-          ) : searched && (
+          ) : (
             <tr>
               <td colSpan={6} className="text-center py-12 text-gray-500">検索結果が見つかりませんでした。</td>
             </tr>

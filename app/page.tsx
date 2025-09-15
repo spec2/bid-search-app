@@ -68,6 +68,18 @@ export default function Home() {
   };
 
   const handleNewSearch = (params: SearchParams) => {
+    // Check if all search parameters are empty
+    const isSearchEmpty = Object.values(params).every(value => value === '');
+    
+    if (isSearchEmpty) {
+      setResults([]);
+      setTotalCount(0);
+      setSearched(true); // Set to true to show "no results" message
+      setCurrentSearch(params);
+      setCurrentPage(1);
+      return;
+    }
+
     setCurrentSearch(params);
     executeSearch(params, 1);
   };
@@ -99,11 +111,13 @@ export default function Home() {
 
         <ResultsTable results={results} loading={loading} searched={searched} />
         
-        <Pagination 
-          currentPage={currentPage}
-          totalPages={totalPages}
-          onPageChange={handlePageChange}
-        />
+        {searched && results.length > 0 && (
+          <Pagination 
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={handlePageChange}
+          />
+        )}
       </main>
 
       <Footer />

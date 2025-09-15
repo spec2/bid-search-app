@@ -2,9 +2,16 @@
 
 import { useState, useEffect } from 'react';
 import { Search, Building } from 'lucide-react';
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { Button } from "./ui/button";
+import { Input } from "./ui/input";
+import { Label } from "./ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "./ui/select";
 
 interface SearchFormProps {
   onSearch: (params: { query: string; company: string; ministry: string; startDate: string; endDate: string; }) => void;
@@ -75,16 +82,15 @@ const SearchForm = ({ onSearch, loading }: SearchFormProps) => {
         </div>
         <div className="space-y-2">
           <Label htmlFor="ministry">府省</Label>
-          {/* This will be replaced with shadcn/ui Select later */}
-          <select
-            id="ministry"
-            value={ministry}
-            onChange={(e) => setMinistry(e.target.value)}
-            className="w-full h-10 border border-input bg-background rounded-md px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
-          >
-            <option value="">すべての府省</option>
-            {ministries.map(m => <option key={m} value={m}>{m}</option>)}
-          </select>
+          <Select value={ministry} onValueChange={(value) => setMinistry(value === 'all' ? '' : value)}>
+            <SelectTrigger>
+              <SelectValue placeholder="すべての府省" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">すべての府省</SelectItem>
+              {ministries.map(m => <SelectItem key={m} value={m}>{m}</SelectItem>)}
+            </SelectContent>
+          </Select>
         </div>
         <div className="space-y-2">
           <Label htmlFor="start-date">開始日</Label>
