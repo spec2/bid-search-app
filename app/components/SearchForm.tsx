@@ -51,6 +51,7 @@ const SearchForm = ({ onSearch, loading }: SearchFormProps) => {
           value={ministry}
           onChange={(e) => setMinistry(e.target.value)}
           className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+          data-placeholder={!ministry}
         >
           <option value="">すべての府省</option>
           {ministries.map(m => <option key={m} value={m}>{m}</option>)}
@@ -60,6 +61,7 @@ const SearchForm = ({ onSearch, loading }: SearchFormProps) => {
           value={startDate}
           onChange={(e) => setStartDate(e.target.value)}
           className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+          data-placeholder={!startDate}
           aria-label="開始日"
         />
         <input
@@ -67,6 +69,7 @@ const SearchForm = ({ onSearch, loading }: SearchFormProps) => {
           value={endDate}
           onChange={(e) => setEndDate(e.target.value)}
           className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+          data-placeholder={!endDate}
           aria-label="終了日"
         />
       </div>
