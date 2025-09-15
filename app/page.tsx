@@ -60,12 +60,12 @@ export default function Home() {
 
       <main className="flex-grow container mx-auto p-4 sm:p-8">
         <div className="text-center mb-8">
-          <h2 className="text-3xl font-bold text-gray-800 mb-2">
-            全国の入札情報を、もっとオープンに。
-          </h2>
+          <h1 className="text-3xl font-bold text-gray-800 mb-2">
+            公共調達の透明性を、すべての人に。官公庁 入札・落札情報データベース
+          </h1>
           <p className="text-gray-600">
-            このサイトは、全国の官公庁から公開される入札・落札情報を横断的に検索できるサービスです。<br />
-            キーワード、府省、期間を指定して、目的の情報を素早く見つけましょう。
+            入札サーチ.jpは、国や地方公共団体が公開する膨大な入札・落札情報を、一つの場所で横断的に検索できる無料のデータベースです。<br />
+            面倒な情報収集はもう不要です。キーワード、府省、事業者名、期間を指定するだけで、あなたのビジネスチャンスに繋がる公共調達案件を素早く見つけ出します。
           </p>
         </div>
 

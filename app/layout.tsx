@@ -13,8 +13,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "官公庁 入札・落札情報検索 | Bid Search App",
-  description: "全国の官公庁から公開される入札・落札情報を、キーワード、府省、期間で簡単に横断検索できるサービスです。",
+  title: "官公庁の入札・落札情報検索 | 入札サーチ.jp",
+  description: "入札サーチ.jpは、全国の官公庁から公開される公共調達の入札・落札情報を、キーワード、府省、事業者名、期間で簡単に横断検索できる無料のデータベースです。",
 };
 
 export default function RootLayout({
