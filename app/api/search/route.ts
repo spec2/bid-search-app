@@ -1,17 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createDbPool } from '../../../lib/db';
-
-interface Bid {
-  調達案件名称: string;
-  落札決定日: string;
-  落札価格: number;
-  company_name: string;
-  ministry_name: string;
-  bid_method_name: string;
-}
 
 export async function GET(req: NextRequest) {
-  const pool = createDbPool();
+  const isDevelopment = process.env.NODE_ENV === 'development';
+  const baseUrl = isDevelopment ? 'http://localhost:3001' : `https://${process.env.DB_HOSTNAME}`;
 
   try {
     const { searchParams } = new URL(req.url);
@@ -25,82 +16,61 @@ export async function GET(req: NextRequest) {
     const limit = 50;
     const offset = (page - 1) * limit;
 
-    const bindings: (string | number)[] = [];
-    let paramIndex = 1;
-    const whereClauses: string[] = [];
-
+    // Construct PostgREST query parameters
+    const params = new URLSearchParams();
+    params.append('select', '調達案件名称,落札決定日,落札価格,company:companies(company_name:商号又は名称),ministry:ministries(ministry_name:名称),bid_method:bid_methods(bid_method_name:名称)');
+    
     if (query) {
       const keywords = query.split(/\s+/).filter(Boolean);
-      const keywordClauses = keywords.map(keyword => {
-        bindings.push(`%${keyword}%`);
-        return `b."調達案件名称" ILIKE $${paramIndex++}`;
-      });
-      if (keywordClauses.length > 0) {
-        whereClauses.push(`(${keywordClauses.join(' AND ')})`);
-      }
+      const andConditions = keywords.map(k => `調達案件名称.ilike.*${k}*`).join(',');
+      params.append('and', `(${andConditions})`);
     }
     if (company) {
-      bindings.push(`%${company}%`);
-      whereClauses.push(`c."商号又は名称" ILIKE $${paramIndex++}`);
+      params.append('company.商号又は名称', `ilike.*${company}*`);
     }
     if (ministry) {
-      bindings.push(ministry);
-      whereClauses.push(`m."名称" = $${paramIndex++}`);
+      params.append('ministry.名称', `eq.${ministry}`);
     }
     if (startDate) {
-      bindings.push(startDate);
-      whereClauses.push(`b."落札決定日" >= $${paramIndex++}`);
+      params.append('落札決定日', `gte.${startDate}`);
     }
     if (endDate) {
-      bindings.push(endDate);
-      whereClauses.push(`b."落札決定日" <= $${paramIndex++}`);
+      params.append('落札決定日', `lte.${endDate}`);
     }
 
-    const whereSql = whereClauses.length > 0 ? `WHERE ${whereClauses.join(' AND ')}` : '';
+    params.append('order', '落札決定日.desc');
+    params.append('limit', String(limit));
+    params.append('offset', String(offset));
 
-    const countSql = `
-      SELECT COUNT(*) as total
-      FROM bids AS b
-      JOIN companies AS c ON b."法人番号" = c."法人番号"
-      JOIN ministries AS m ON b."府省コード" = m."コード"
-      ${whereSql}
-    `;
+    // For total count, call the RPC function
+    const countPayload = {
+      query: query,
+      company: company,
+      ministry: ministry || '',
+      start_date: startDate || null,
+      end_date: endDate || null,
+    };
 
-    const resultsSql = `
-      SELECT
-        b."調達案件名称",
-        b."落札決定日",
-        b."落札価格",
-        c."商号又は名称" AS company_name,
-        m."名称" AS ministry_name,
-        bm."名称" AS bid_method_name
-      FROM bids AS b
-      JOIN companies AS c ON b."法人番号" = c."法人番号"
-      JOIN ministries AS m ON b."府省コード" = m."コード"
-      JOIN bid_methods AS bm ON b."入札方式コード" = bm."コード"
-      ${whereSql}
-      ORDER BY b."落札決定日" DESC
-      LIMIT $${paramIndex++} OFFSET $${paramIndex++}
-    `;
-
-    const [countResult, resultsResult] = await Promise.all([
-      pool.query(countSql, bindings),
-      pool.query(resultsSql, [...bindings, limit, offset])
+    const [resultsResponse, countResponse] = await Promise.all([
+      fetch(`${baseUrl}/bids?${params.toString()}`),
+      fetch(`${baseUrl}/rpc/search_bids_count`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(countPayload),
+      })
     ]);
 
-    const totalCount = parseInt(countResult.rows[0].total, 10) || 0;
-    const results = resultsResult.rows as Bid[];
+    if (!resultsResponse.ok) throw new Error(`Results fetch failed: ${resultsResponse.statusText}`);
+    if (!countResponse.ok) throw new Error(`Count fetch failed: ${countResponse.statusText}`);
+
+    const results = await resultsResponse.json();
+    const totalCount = await countResponse.json();
 
     return NextResponse.json({ results, totalCount });
 
   } catch (e) {
     const message = e instanceof Error ? e.message : String(e);
-    console.error({
-      message: 'Failed to execute query',
-      error: message,
-    });
+    console.error({ message: 'Failed to execute query', error: message });
     return NextResponse.json({ error: 'Query failed', details: message }, { status: 500 });
-  } finally {
-    pool.end();
   }
 }
