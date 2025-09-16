@@ -12,9 +12,9 @@ interface Bid {
   調達案件名称: string;
   落札決定日: string;
   落札価格: number;
-  company_name: string;
-  ministry_name: string;
-  bid_method_name: string;
+  companies: { 商号又は名称: string } | null;
+  ministries: { 名称: string } | null;
+  bid_methods: { 名称: string } | null;
 }
 
 interface SearchParams {

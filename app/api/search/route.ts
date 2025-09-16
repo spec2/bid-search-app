@@ -18,18 +18,21 @@ export async function GET(req: NextRequest) {
 
     // Construct PostgREST query parameters
     const params = new URLSearchParams();
-    params.append('select', '調達案件名称,落札決定日,落札価格,company:companies(company_name:商号又は名称),ministry:ministries(ministry_name:名称),bid_method:bid_methods(bid_method_name:名称)');
+    // Alias relationships to match frontend expectations (e.g., 'companies')
+    // Use the actual foreign key column names for the relationships (e.g., '法人番号')
+    params.append('select', '*,companies:法人番号(商号又は名称),ministries:府省コード(名称),bid_methods:入札方式コード(名称)');
     
     if (query) {
       const keywords = query.split(/\s+/).filter(Boolean);
       const andConditions = keywords.map(k => `調達案件名称.ilike.*${k}*`).join(',');
       params.append('and', `(${andConditions})`);
     }
+    // Use the actual relationship name for filtering
     if (company) {
-      params.append('company.商号又は名称', `ilike.*${company}*`);
+      params.append('法人番号.商号又は名称', `ilike.*${company}*`);
     }
     if (ministry) {
-      params.append('ministry.名称', `eq.${ministry}`);
+      params.append('府省コード.名称', `eq.${ministry}`);
     }
     if (startDate) {
       params.append('落札決定日', `gte.${startDate}`);
@@ -60,8 +63,14 @@ export async function GET(req: NextRequest) {
       })
     ]);
 
-    if (!resultsResponse.ok) throw new Error(`Results fetch failed: ${resultsResponse.statusText}`);
-    if (!countResponse.ok) throw new Error(`Count fetch failed: ${countResponse.statusText}`);
+    if (!resultsResponse.ok) {
+      console.error('Results fetch response:', await resultsResponse.text());
+      throw new Error(`Results fetch failed: ${resultsResponse.statusText}`);
+    }
+    if (!countResponse.ok) {
+      console.error('Count fetch response:', await countResponse.text());
+      throw new Error(`Count fetch failed: ${countResponse.statusText}`);
+    }
 
     const results = await resultsResponse.json();
     const totalCount = await countResponse.json();

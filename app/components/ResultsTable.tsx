@@ -11,9 +11,9 @@ interface Bid {
   調達案件名称: string;
   落札決定日: string;
   落札価格: number;
-  company_name: string;
-  ministry_name: string;
-  bid_method_name: string;
+  companies: { 商号又は名称: string } | null;
+  ministries: { 名称: string } | null;
+  bid_methods: { 名称: string } | null;
 }
 
 interface ResultsTableProps {
@@ -58,11 +58,11 @@ const ResultsTable = ({ results, loading, searched }: ResultsTableProps) => {
                 results.map((bid, index) => (
                   <tr key={index} className="hover:bg-gray-50 transition-colors">
                     <td className="px-6 py-4 whitespace-normal text-sm text-gray-800">{bid.調達案件名称}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">{bid.company_name}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">{bid.companies?.商号又は名称 || 'N/A'}</td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">{bid.落札決定日}</td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600 text-right">{formatPrice(bid.落札価格)}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">{bid.ministry_name}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">{bid.bid_method_name}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">{bid.ministries?.名称 || 'N/A'}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">{bid.bid_methods?.名称 || 'N/A'}</td>
                   </tr>
                 ))
               ) : (
