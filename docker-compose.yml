@@ -1,0 +1,36 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: postgres
+    restart: unless-stopped
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=postgres
+    volumes:
+      - bid_search_app_postgres_data:/var/lib/postgresql/data
+      - ./docker/postgres/pg_hba.conf:/etc/postgresql/pg_hba.conf
+    command: ["postgres", "-c", "password_encryption=md5", "-c", "hba_file=/etc/postgresql/pg_hba.conf", "-c", "log_statement=all"]
+    ports:
+      - "5432:5432" # Expose port to host for the seed script
+    networks:
+      - internal
+
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    container_name: cloudflared
+    restart: unless-stopped
+    command: tunnel --no-autoupdate --url tcp://postgres:5432 --overwrite-dns run --token ${CLOUDFLARE_TUNNEL_TOKEN}
+    networks:
+      - internal
+    depends_on:
+      - postgres
+
+volumes:
+  bid_search_app_postgres_data:
+
+networks:
+  internal:
+    driver: bridge

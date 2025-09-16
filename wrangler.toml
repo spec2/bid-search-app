@@ -3,9 +3,8 @@ compatibility_date = "2024-09-23"
 main = ".open-next/worker.js"
 compatibility_flags = ["nodejs_compat"]
 
-
-
-[[d1_databases]]
-binding = "DB"
-database_name = "bid-data"
-database_id = "ec6cdb10-1c27-442f-a8a2-ada20ef2abd4"
+[vars]
+DB_USER = "user"
+DB_DATABASE = "postgres"
+DB_HOSTNAME = "db-bids.homeiworks.uk"
+DB_PORT = "5432"

@@ -9,7 +9,9 @@
 		"deploy": "opennextjs-cloudflare build && npx wrangler deploy",
 		"start": "next start",
 		"lint": "next lint",
-		"db:seed": "node ./scripts/seed.mjs"
+		"db:seed": "node ./scripts/seed.mjs",
+		"db:pg:init": "node ./scripts/seed-postgres.mjs --init",
+		"db:pg:seed": "node ./scripts/seed-postgres.mjs"
 	},
 	"dependencies": {
 		"@radix-ui/react-label": "^2.1.7",
@@ -19,6 +21,7 @@
 		"clsx": "^2.1.1",
 		"lucide-react": "^0.544.0",
 		"next": "15.3.3",
+		"pg": "^8.16.3",
 		"react": "19.0.0",
 		"react-dom": "19.0.0",
 		"tailwind-merge": "^3.3.1"
@@ -28,6 +31,7 @@
 		"@opennextjs/cloudflare": "^1.8.2",
 		"@tailwindcss/postcss": "4.1.4",
 		"@types/node": "^24.0.4",
+		"@types/pg": "^8.15.5",
 		"@types/react": "19.0.10",
 		"@types/react-dom": "19.0.4",
 		"csv-parse": "^6.1.0",
