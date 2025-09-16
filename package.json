@@ -6,7 +6,6 @@
 		"dev": "next dev",
 		"build": "next build",
 		"preview": "opennextjs-cloudflare build && npx wrangler dev .open-next/worker.js --local --assets .open-next/assets --config wrangler.toml",
-		"deploy": "opennextjs-cloudflare build && npx wrangler deploy",
 		"start": "next start",
 		"lint": "next lint",
 		"db:seed": "node ./scripts/seed.mjs",

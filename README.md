@@ -5,37 +5,40 @@
 **入札サーチ.jp**は、全国の官公庁から公開される公共調達の入札・落札情報を、誰でも無料で横断検索できるWebアプリケーションです。
 これまで各所に点在していた情報を一つに集約し、キーワード、府省、期間などで簡単に絞り込み検索を行えるようにすることで、ビジネスチャンスの発見をサポートします。
 
-本アプリケーションは、[調達ポータル](https://www.p-portal.go.jp/)のオープンデータを活用しています。
+本アプリケーションは、[政府調達ポータル](https://www.p-portal.go.jp/)のオープンデータを活用しています。
 
 ## 主な機能
 
-- **キーワード検索**: 案件名と事業者名を対象にした、複数キーワードでのAND検索
-- **絞り込み機能**: 府省、落札決定日で期間を指定しての絞り込み
+- **キーワード検索**: 案件名でのフリーワード検索
+- **絞り込み機能**: 事業者名、府省、落札決定日で期間を指定しての絞り込み
+- **ページネーション**: 検索結果を50件ごとに表示
 - **レスポンシブデザイン**: PC、スマートフォン、タブレットなど、様々なデバイスで快適に利用可能
 
 ## 技術スタック
 
 - **フレームワーク**: [Next.js](https://nextjs.org/) (App Router)
-- **UI**: [React](https://react.dev/), [Tailwind CSS](https://tailwindcss.com/)
-- **デプロイ環境**: [Cloudflare Workers](https://workers.cloudflare.com/)
-- **データベース**: [Cloudflare D1](https://developers.cloudflare.com/d1/)
-- **アダプター**: [OpenNext](https://opennext.js.org/)
+- **UI**: [React](https://react.dev/), [Tailwind CSS](https://tailwindcss.com/), [shadcn/ui](https://ui.shadcn.com/)
+- **データベース**: [PostgreSQL](https://www.postgresql.org/)
+- **API**: [PostgREST](https://postgrest.org/) (PostgreSQLからRESTful APIを自動生成)
+- **開発環境**: [Docker](https://www.docker.com/), [Docker Compose](https://docs.docker.com/compose/)
+- **デプロイ環境**: [Vercel](https://vercel.com/)
 
 ---
 
-## 利用開始までの手順
+## ローカル開発環境のセットアップ
 
 ### 1. 前提条件
 
 - [Node.js](https://nodejs.org/) (v18.17.0 以上)
-- [npm](https://www.npmjs.com/)
+- [Docker](https://www.docker.com/products/docker-desktop/)
+- [Docker Compose](https://docs.docker.com/compose/install/)
 
-### 2. セットアップ
+### 2. セットアップ手順
 
 1.  **リポジトリをクローン**
     ```bash
     git clone <repository-url>
-    cd nyusatsu-search-jp
+    cd bid-search-app
     ```
 
 2.  **依存関係をインストール**
@@ -43,53 +46,40 @@
     npm install
     ```
 
-3.  **.envファイルの作成**
-    プロジェクトのルートディレクトリに`.env`ファイルを作成し、Cloudflareの認証情報を記述します。このファイルは`.gitignore`に含まれており、Gitリポジトリにはコミットされません。
-
-    ```env
-    CLOUDFLARE_API_TOKEN="<あなたのCloudflare APIトークン>"
-    CLOUDFLARE_ACCOUNT_ID="<あなたのCloudflare アカウントID>"
+3.  **.env ファイルの作成**
+    プロジェクトのルートにある `.env.local.example` をコピーして `.env` ファイルを作成します。中身はローカル開発用に設定済みなので、変更は不要です。
+    ```bash
+    cp .env.local.example .env
     ```
+
+4.  **Dockerコンテナの起動**
+    以下のコマンドで、PostgreSQLとPostgRESTのコンテナをバックグラウンドで起動します。
+    ```bash
+    docker-compose up -d
+    ```
+
+5.  **データベースの初期化とデータ投入**
+    初回のみ、以下のコマンドでテーブルを作成し、CSVデータをデータベースに投入します。
+    ```bash
+    npm run db:pg:init
+    ```
+    データ量に応じて数分かかることがあります。
+
+6.  **開発サーバーの起動**
+    ```bash
+    npm run dev
+    ```
+    ブラウザで `http://localhost:3000` にアクセスすると、アプリケーションが表示されます。
 
 ---
 
-## データベースのセットアップとデータ投入
+## 環境変数
 
-本アプリケーションは、Cloudflare D1データベースを使用します。データ投入（シード）スクリプトは、D1の書き込み制限（無料枠では1日10万行）に対応するため、複数日に分けて実行できるようになっています。
-
-### 1. 初回のみ：データベースの初期化
-
-最初に、データベースのテーブルをすべて作成します。
-**注意:** このコマンドは既存のデータをすべて削除します。
-
-```bash
-# ローカル環境の場合
-npm run db:seed -- --init --local
-
-# 本番環境の場合
-npm run db:seed -- --init
-```
-
-### 2. データの投入
-
-`--file`オプションで、処理するCSVファイルを指定します。1日の上限に達したら、翌日以降に別のファイルで再開してください。
-
-```bash
-# 例：2024年のデータをローカルDBに投入
-npm run db:seed -- --local --file=successful_bid_record_info_all_2024.csv
-
-# 例：翌日、2025年のデータを本番DBに投入
-npm run db:seed -- --file=successful_bid_record_info_all_2025.csv
-```
-
-### 3. 投入の中断と再開
-
-1つのファイルが巨大な場合、`--offset`オプションで行数を指定して、処理を中断・再開できます。
-
-```bash
-# 例：巨大なファイルの50001行目から処理を再開
-npm run db:seed -- --local --file=huge_data.csv --offset=50000
-```
+| 変数名 | 説明 | 設定ファイル |
+|:---|:---|:---|
+| `POSTGRES_USER` | PostgreSQLのユーザー名。 | `.env` |
+| `POSTGRES_PASSWORD` | PostgreSQLのパスワード。 | `.env` |
+| `API_URL` | **[Vercelデプロイ時のみ]** 本番環境のPostgREST APIのエンドポイントURL。 | Vercelの環境変数設定 |
 
 ---
 
@@ -97,35 +87,48 @@ npm run db:seed -- --local --file=huge_data.csv --offset=50000
 
 | コマンド | 説明 |
 |:---|:---|
-| `npm run dev` | Next.jsの開発サーバーを起動します (http://localhost:3000) |
-| `npm run build` | 本番用のアプリケーションをビルドします |
-| `npm run preview` | 本番ビルドをローカルでプレビューします。ローカルのD1データベースに接続します |
-| `npm run deploy` | アプリケーションをCloudflare Workersにデプロイします |
-| `npm run start` | Next.jsのプロダクションサーバーを起動します（本プロジェクトでは通常`preview`を使用） |
-| `npm run lint` | ESLintによるコードの静的解析を実行します |
-| `npm run db:seed` | データベースにデータを投入（シード）します。詳細は上記セクションを参照 |
+| `npm run dev` | Next.jsの開発サーバーを起動します (http://localhost:3000)。 |
+| `npm run build` | 本番用のアプリケーションをビルドします。 |
+| `npm run start` | 本番ビルドをローカルで起動します。 |
+| `npm run lint` | ESLintによるコードの静的解析を実行します。 |
+| `docker-compose up -d` | 開発用のDBとAPIコンテナをバックグラウンドで起動します。 |
+| `docker-compose down` | 開発用のコンテナを停止・削除します。 |
+| `npm run db:pg:init` | DBのテーブルを初期化し、CSVデータを投入します。 |
+| `npm run db:pg:seed` | DBのテーブルを削除せずに、CSVデータのみを投入します。 |
 
 ---
 
 ## デプロイ
 
-1.  **認証情報の設定**
-    `.env`ファイルに本番環境用のCloudflare認証情報が正しく設定されていることを確認します。
+本アプリケーションはVercelへのデプロイを想定しています。
 
-2.  **本番DBへのデータ投入**
-    上記の「データベースのセットアップとデータ投入」セクションを参考に、本番環境のD1データベースにデータを投入します。
+### 1. PostgREST APIの準備
 
-3.  **デプロイの実行**
+PostgreSQLとPostgRESTを任意のサーバーにデプロイし、公開URL (`https://...`) を用意します。
+（例: `docker-compose.yml` の `cloudflared` サービスを利用してCloudflare Tunnelで公開する、など）
+
+### 2. Vercelプロジェクトのセットアップ
+
+1.  **Vercel CLIでログイン**
     ```bash
-    npm run deploy
+    vercel login
     ```
 
-4.  **D1データベースのバインド（初回のみ）**
-    デプロイ後、アプリケーションからデータベースに接続できない場合は、Cloudflareダッシュボードで手動のバインディングが必要です。
-    1. Cloudflareダッシュボードにログイン
-    2. [Workers & Pages] > 対象のWorkerを選択
-    3. [Settings] > [Variables] > [D1 Database Bindings]
-    4. [Add binding] をクリック
-    5. **Variable name:** `DB`
-    6. **D1 database:** `bid-data` を選択
-    7. [Save] をクリック
+2.  **プロジェクトのリンク**
+    ```bash
+    vercel link
+    ```
+    対話形式の質問に答えて、ローカルリポジトリとVercel上のプロジェクトを紐付けます。
+
+3.  **環境変数の設定**
+    Vercelのダッシュボード、または以下のコマンドで本番用のAPIのURLを設定します。
+    ```bash
+    vercel env add API_URL <あなたのPostgREST APIのURL> production
+    ```
+
+### 3. デプロイの実行
+
+以下のコマンドで、本番環境にデプロイします。
+```bash
+vercel --prod
+```

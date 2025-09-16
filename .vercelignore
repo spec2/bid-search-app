@@ -1,0 +1,14 @@
+# Vercel Ignore File
+
+# Database Data
+.postgres-data/
+
+# Dependencies
+node_modules/
+
+# Environment variables
+.env*
+
+# Docker
+docker/
+docker-compose.yml
