@@ -1,12 +1,14 @@
 "use client";
 
-import { useState } from 'react';
+import { useState, useEffect, Suspense } from 'react';
+import { useSearchParams, useRouter } from 'next/navigation';
 import Header from './components/Header';
 import Footer from './components/Footer';
 import SearchForm from './components/SearchForm';
 import ResultsTable from './components/ResultsTable';
 import Pagination from './components/Pagination';
 import { Card, CardContent, CardHeader, CardTitle } from './components/ui/card';
+import { ResultsTableSkeleton } from './components/ResultsTableSkeleton';
 
 // Define the structure of the search results
 interface Bid {
@@ -26,69 +28,75 @@ interface SearchParams {
   endDate: string;
 }
 
-export default function Home() {
-  const [results, setResults] = useState<Bid[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [searched, setSearched] = useState(false);
-  const [totalCount, setTotalCount] = useState(0);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [currentSearch, setCurrentSearch] = useState<SearchParams | null>(null);
+function SearchPageClient() {
+  const searchParams = useSearchParams();
+  const router = useRouter();
 
+  const [results, setResults] = useState<Bid[]>([]);
+  const [loading, setLoading] = useState(true); // Start with loading true for initial fetch
+  const [error, setError] = useState<string | null>(null);
+  const [totalCount, setTotalCount] = useState(0);
+  
+  const page = parseInt(searchParams.get('page') || '1', 10);
   const limit = 50;
   const totalPages = Math.ceil(totalCount / limit);
 
-  const executeSearch = async (params: SearchParams, page: number) => {
-    setLoading(true);
-    setError(null);
-    setSearched(true);
-    setCurrentPage(page);
-    
-    try {
-      const searchParams = new URLSearchParams();
-      if (params.query) searchParams.append('q', params.query);
-      if (params.company) searchParams.append('company', params.company);
-      if (params.ministry) searchParams.append('ministry', params.ministry);
-      if (params.startDate) searchParams.append('startDate', params.startDate);
-      if (params.endDate) searchParams.append('endDate', params.endDate);
-      searchParams.append('page', page.toString());
+  const currentSearch: SearchParams = {
+    query: searchParams.get('query') || '',
+    company: searchParams.get('company') || '',
+    ministry: searchParams.get('ministry') || '',
+    startDate: searchParams.get('startDate') || '',
+    endDate: searchParams.get('endDate') || '',
+  };
 
-      const response = await fetch(`/api/search?${searchParams.toString()}`);
-      if (!response.ok) {
-        throw new Error('Network response was not ok');
+  useEffect(() => {
+    const executeSearch = async () => {
+      setLoading(true);
+      setError(null);
+      
+      try {
+        const params = new URLSearchParams();
+        if (currentSearch.query) params.append('q', currentSearch.query);
+        if (currentSearch.company) params.append('company', currentSearch.company);
+        if (currentSearch.ministry) params.append('ministry', currentSearch.ministry);
+        if (currentSearch.startDate) params.append('startDate', currentSearch.startDate);
+        if (currentSearch.endDate) params.append('endDate', currentSearch.endDate);
+        params.append('page', page.toString());
+
+        const response = await fetch(`/api/search?${params.toString()}`);
+        if (!response.ok) {
+          throw new Error('Network response was not ok');
+        }
+        const data = await response.json();
+        setResults(data.results);
+        setTotalCount(data.totalCount);
+      } catch (e) {
+        setError('検索結果の取得に失敗しました。');
+        console.error(e);
+      } finally {
+        setLoading(false);
       }
-      const data = await response.json();
-      setResults(data.results);
-      setTotalCount(data.totalCount);
-    } catch (e) {
-      setError('検索結果の取得に失敗しました。');
-      console.error(e);
-    } finally {
-      setLoading(false);
-    }
-  };
+    };
 
-  const handleNewSearch = (params: SearchParams) => {
-    // Check if all search parameters are empty
-    const isSearchEmpty = Object.values(params).every(value => value === '');
+    executeSearch();
+  }, [searchParams]); // Re-run search whenever URL params change
+
+  const handleSearch = (params: SearchParams) => {
+    const newParams = new URLSearchParams();
+    if (params.query) newParams.set('query', params.query);
+    if (params.company) newParams.set('company', params.company);
+    if (params.ministry) newParams.set('ministry', params.ministry);
+    if (params.startDate) newParams.set('startDate', params.startDate);
+    if (params.endDate) newParams.set('endDate', params.endDate);
+    newParams.set('page', '1'); // Reset to first page on new search
     
-    if (isSearchEmpty) {
-      setResults([]);
-      setTotalCount(0);
-      setSearched(true); // Set to true to show "no results" message
-      setCurrentSearch(params);
-      setCurrentPage(1);
-      return;
-    }
-
-    setCurrentSearch(params);
-    executeSearch(params, 1);
+    router.push(`/?${newParams.toString()}`);
   };
 
-  const handlePageChange = (page: number) => {
-    if (currentSearch) {
-      executeSearch(currentSearch, page);
-    }
+  const handlePageChange = (newPage: number) => {
+    const newParams = new URLSearchParams(searchParams.toString());
+    newParams.set('page', newPage.toString());
+    router.push(`/?${newParams.toString()}`);
   };
 
   return (
@@ -103,7 +111,6 @@ export default function Home() {
             </h1>
             <p className="text-lg text-muted-foreground max-w-3xl mx-auto">
               入札サーチ.jpは、国や地方公共団体など、全国の官公庁から公開される膨大な入札・落札情報を集約した無料のデータベースです。
-              手間のかかる情報収集は、もう必要ありません。あなたのビジネスを加速させる、価値ある情報を効率的に見つけ出すお手伝いをします。
             </p>
           </div>
         </section>
@@ -114,7 +121,7 @@ export default function Home() {
               <CardTitle>検索条件</CardTitle>
             </CardHeader>
             <CardContent>
-              <SearchForm onSearch={handleNewSearch} loading={loading} />
+              <SearchForm onSearch={handleSearch} loading={loading} initialState={currentSearch} />
             </CardContent>
           </Card>
 
@@ -125,12 +132,16 @@ export default function Home() {
               <CardTitle>検索結果</CardTitle>
             </CardHeader>
             <CardContent>
-              <ResultsTable results={results} loading={loading} searched={searched} />
+              {loading ? (
+                <ResultsTableSkeleton />
+              ) : (
+                <ResultsTable results={results} loading={loading} searched={true} />
+              )}
               
-              {searched && results.length > 0 && (
+              {!loading && results.length > 0 && (
                 <div className="mt-6">
                   <Pagination 
-                    currentPage={currentPage}
+                    currentPage={page}
                     totalPages={totalPages}
                     onPageChange={handlePageChange}
                   />
@@ -143,5 +154,13 @@ export default function Home() {
 
       <Footer />
     </div>
+  );
+}
+
+export default function Home() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <SearchPageClient />
+    </Suspense>
   );
 }

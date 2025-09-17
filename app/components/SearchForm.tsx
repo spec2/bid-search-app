@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from 'react';
-import { format } from "date-fns";
+import { format, parseISO } from "date-fns";
 import { ja } from 'date-fns/locale';
 import { Search, Building, RotateCw, Calendar as CalendarIcon } from 'lucide-react';
 import { Button } from "./ui/button";
@@ -18,19 +18,40 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Calendar01 } from '@/components/calendar-01';
 import { cn } from '@/lib/utils';
 
-interface SearchFormProps {
-  onSearch: (params: { query: string; company: string; ministry: string; startDate: string; endDate: string; }) => void;
-  loading: boolean;
+interface SearchParams {
+  query: string;
+  company: string;
+  ministry: string;
+  startDate: string;
+  endDate: string;
 }
 
-const SearchForm = ({ onSearch, loading }: SearchFormProps) => {
-  const [query, setQuery] = useState('');
-  const [company, setCompany] = useState('');
-  const [ministry, setMinistry] = useState('');
-  const [startDate, setStartDate] = useState<Date | undefined>();
-  const [endDate, setEndDate] = useState<Date | undefined>();
+interface SearchFormProps {
+  onSearch: (params: SearchParams) => void;
+  loading: boolean;
+  initialState: Partial<SearchParams>;
+}
+
+const SearchForm = ({ onSearch, loading, initialState }: SearchFormProps) => {
+  const [query, setQuery] = useState(initialState.query || '');
+  const [company, setCompany] = useState(initialState.company || '');
+  const [ministry, setMinistry] = useState(initialState.ministry || '');
+  const [startDate, setStartDate] = useState<Date | undefined>(
+    initialState.startDate ? parseISO(initialState.startDate) : undefined
+  );
+  const [endDate, setEndDate] = useState<Date | undefined>(
+    initialState.endDate ? parseISO(initialState.endDate) : undefined
+  );
   const [ministries, setMinistries] = useState<string[]>([]);
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    setQuery(initialState.query || '');
+    setCompany(initialState.company || '');
+    setMinistry(initialState.ministry || '');
+    setStartDate(initialState.startDate ? parseISO(initialState.startDate) : undefined);
+    setEndDate(initialState.endDate ? parseISO(initialState.endDate) : undefined);
+  }, [initialState]);
 
   useEffect(() => {
     const fetchMinistries = async () => {
