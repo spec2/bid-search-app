@@ -79,6 +79,5 @@ ALTER FUNCTION public.search_bids_count(text, text, text, date, date) OWNER TO "
 -- Create a read-only role for anonymous access
 CREATE ROLE anon_user NOLOGIN;
 GRANT USAGE ON SCHEMA public TO anon_user;
--- Grant select permissions on all tables in the public schema to the anonymous user
-GRANT SELECT ON ALL TABLES IN SCHEMA public TO anon_user;
+GRANT SELECT ON TABLE public.bids, public.companies, public.ministries, public.bid_methods TO anon_user;
 GRANT EXECUTE ON FUNCTION public.search_bids_count(text, text, text, date, date) TO anon_user;
