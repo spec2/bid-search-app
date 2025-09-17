@@ -20,8 +20,7 @@
     ],
     "baseUrl": ".",
     "paths": {
-      "@/*": ["./*"],
-      "@/components/*": ["app/components/*"]
+      "@/*": ["./*"]
     },
     "types": [
         "./cloudflare-env.d.ts",

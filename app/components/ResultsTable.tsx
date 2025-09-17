@@ -49,7 +49,7 @@ const formatDate = (dateString: string) => {
   try {
     const date = new Date(dateString);
     return format(date, 'yyyy年MM月dd日', { locale: ja });
-  } catch (error) {
+  } catch {
     return dateString;
   }
 };

@@ -5,7 +5,16 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
 
-export function exportToCsv(data: any[], fileName: string) {
+interface CsvData {
+  調達案件名称?: string;
+  法人番号?: { 商号又は名称?: string } | null;
+  落札決定日?: string;
+  落札価格?: number;
+  府省コード?: { 名称?: string } | null;
+  入札方式コード?: { 名称?: string } | null;
+}
+
+export function exportToCsv(data: CsvData[], fileName: string) {
   if (!data || data.length === 0) {
     return;
   }
