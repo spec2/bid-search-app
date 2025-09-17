@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import { format } from "date-fns";
-import { Search, Building, RotateCw } from 'lucide-react';
+import { ja } from 'date-fns/locale';
+import { Search, Building, RotateCw, Calendar as CalendarIcon } from 'lucide-react';
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { Label } from "./ui/label";
@@ -13,6 +14,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "./ui/select";
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Calendar01 } from '@/components/calendar-01';
+import { cn } from '@/lib/utils';
 
 interface SearchFormProps {
   onSearch: (params: { query: string; company: string; ministry: string; startDate: string; endDate: string; }) => void;
@@ -113,25 +117,43 @@ const SearchForm = ({ onSearch, loading }: SearchFormProps) => {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label className="text-sm text-muted-foreground pl-1">開始日</Label>
-              <div className="rounded-lg border">
-                <Input
-                  type="date"
-                  value={startDate ? format(startDate, "yyyy-MM-dd") : ''}
-                  onChange={(e) => setStartDate(e.target.value ? new Date(e.target.value) : undefined)}
-                  className="w-full"
-                />
-              </div>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant={"outline"}
+                    className={cn(
+                      "w-full justify-start text-left font-normal",
+                      !startDate && "text-muted-foreground"
+                    )}
+                  >
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {startDate ? format(startDate, 'PPP', { locale: ja }) : <span>日付を選択</span>}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0">
+                  <Calendar01 onSelect={setStartDate} />
+                </PopoverContent>
+              </Popover>
             </div>
             <div className="space-y-2">
               <Label className="text-sm text-muted-foreground pl-1">終了日</Label>
-              <div className="rounded-lg border">
-                <Input
-                  type="date"
-                  value={endDate ? format(endDate, "yyyy-MM-dd") : ''}
-                  onChange={(e) => setEndDate(e.target.value ? new Date(e.target.value) : undefined)}
-                  className="w-full"
-                />
-              </div>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant={"outline"}
+                    className={cn(
+                      "w-full justify-start text-left font-normal",
+                      !endDate && "text-muted-foreground"
+                    )}
+                  >
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {endDate ? format(endDate, 'PPP', { locale: ja }) : <span>日付を選択</span>}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0">
+                  <Calendar01 onSelect={setEndDate} />
+                </PopoverContent>
+              </Popover>
             </div>
           </div>
         </div>
