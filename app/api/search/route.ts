@@ -6,7 +6,7 @@ export async function GET(req: NextRequest) {
 
   try {
     const { searchParams } = new URL(req.url);
-    const query = searchParams.get('q') || '';
+    const query = searchParams.get('query') || '';
     const company = searchParams.get('company') || '';
     const ministry = searchParams.get('ministry');
     const startDate = searchParams.get('startDate');
