@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from 'react';
+import { format } from "date-fns";
 import { Search, Building, RotateCw } from 'lucide-react';
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
@@ -22,8 +23,8 @@ const SearchForm = ({ onSearch, loading }: SearchFormProps) => {
   const [query, setQuery] = useState('');
   const [company, setCompany] = useState('');
   const [ministry, setMinistry] = useState('');
-  const [startDate, setStartDate] = useState('');
-  const [endDate, setEndDate] = useState('');
+  const [startDate, setStartDate] = useState<Date | undefined>();
+  const [endDate, setEndDate] = useState<Date | undefined>();
   const [ministries, setMinistries] = useState<string[]>([]);
   const [error, setError] = useState<string | null>(null);
 
@@ -45,22 +46,28 @@ const SearchForm = ({ onSearch, loading }: SearchFormProps) => {
   }, []);
 
   const handleSearchClick = () => {
-    onSearch({ query, company, ministry, startDate, endDate });
+    onSearch({ 
+      query, 
+      company, 
+      ministry, 
+      startDate: startDate ? format(startDate, "yyyy-MM-dd") : '', 
+      endDate: endDate ? format(endDate, "yyyy-MM-dd") : '' 
+    });
   };
 
   const handleResetClick = () => {
     setQuery('');
     setCompany('');
     setMinistry('');
-    setStartDate('');
-    setEndDate('');
+    setStartDate(undefined);
+    setEndDate(undefined);
     onSearch({ query: '', company: '', ministry: '', startDate: '', endDate: '' });
   };
 
   return (
     <div className="space-y-6">
       {error && <p className="text-center text-destructive mb-4">{error}</p>}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 items-end">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 items-start">
         <div className="space-y-2">
           <Label htmlFor="query">案件名</Label>
           <div className="relative">
@@ -101,26 +108,34 @@ const SearchForm = ({ onSearch, loading }: SearchFormProps) => {
             </SelectContent>
           </Select>
         </div>
-        <div className="space-y-2 md:col-span-2 lg:col-span-3">
+        <div className="space-y-2 md:col-span-3">
           <Label>落札決定日</Label>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <Input
-              id="start-date"
-              type="date"
-              value={startDate}
-              onChange={(e) => setStartDate(e.target.value)}
-              aria-label="開始日"
-            />
-            <Input
-              id="end-date"
-              type="date"
-              value={endDate}
-              onChange={(e) => setEndDate(e.target.value)}
-              aria-label="終了日"
-            />
+            <div className="space-y-2">
+              <Label className="text-sm text-muted-foreground pl-1">開始日</Label>
+              <div className="rounded-lg border">
+                <Input
+                  type="date"
+                  value={startDate ? format(startDate, "yyyy-MM-dd") : ''}
+                  onChange={(e) => setStartDate(e.target.value ? new Date(e.target.value) : undefined)}
+                  className="w-full"
+                />
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label className="text-sm text-muted-foreground pl-1">終了日</Label>
+              <div className="rounded-lg border">
+                <Input
+                  type="date"
+                  value={endDate ? format(endDate, "yyyy-MM-dd") : ''}
+                  onChange={(e) => setEndDate(e.target.value ? new Date(e.target.value) : undefined)}
+                  className="w-full"
+                />
+              </div>
+            </div>
           </div>
         </div>
-        <div className="flex justify-end gap-4 md:col-span-2 lg:col-span-3">
+        <div className="flex justify-end gap-4 md:col-span-3">
           <Button variant="outline" onClick={handleResetClick} disabled={loading}>
             <RotateCw className="mr-2 h-4 w-4" />
             リセット
