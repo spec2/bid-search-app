@@ -6,15 +6,16 @@ import Footer from './components/Footer';
 import SearchForm from './components/SearchForm';
 import ResultsTable from './components/ResultsTable';
 import Pagination from './components/Pagination';
+import { Card, CardContent, CardHeader, CardTitle } from './components/ui/card';
 
 // Define the structure of the search results
 interface Bid {
   調達案件名称: string;
   落札決定日: string;
   落札価格: number;
-  companies: { 商号又は名称: string } | null;
-  ministries: { 名称: string } | null;
-  bid_methods: { 名称: string } | null;
+  法人番号: { 商号又は名称: string } | null;
+  府省コード: { 名称: string } | null;
+  入札方式コード: { 名称: string } | null;
 }
 
 interface SearchParams {
@@ -91,13 +92,13 @@ export default function Home() {
   };
 
   return (
-    <div className="flex flex-col min-h-screen bg-gray-50">
+    <div className="flex flex-col min-h-screen bg-background">
       <Header />
 
-      <main className="flex-grow container mx-auto p-4 sm:p-8">
-        <section className="text-center py-16 md:py-24 bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl mb-12">
+      <main className="flex-grow container mx-auto p-4 sm:p-6 md:p-8">
+        <section className="text-center py-12 md:py-20">
           <div className="container px-4 md:px-6">
-            <h1 className="text-4xl md:text-5xl font-bold tracking-tighter text-foreground mb-4">
+            <h1 className="text-4xl md:text-6xl font-bold tracking-tighter text-foreground mb-4">
               その入札情報、ここで見つかります。
             </h1>
             <p className="text-lg text-muted-foreground max-w-3xl mx-auto">
@@ -108,19 +109,35 @@ export default function Home() {
         </section>
 
         <div className="space-y-8">
-          <SearchForm onSearch={handleNewSearch} loading={loading} />
+          <Card>
+            <CardHeader>
+              <CardTitle>検索条件</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <SearchForm onSearch={handleNewSearch} loading={loading} />
+            </CardContent>
+          </Card>
 
           {error && <p className="text-center text-destructive mb-4">{error}</p>}
           
-          <ResultsTable results={results} loading={loading} searched={searched} />
-          
-          {searched && results.length > 0 && (
-            <Pagination 
-              currentPage={currentPage}
-              totalPages={totalPages}
-              onPageChange={handlePageChange}
-            />
-          )}
+          <Card>
+            <CardHeader>
+              <CardTitle>検索結果</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <ResultsTable results={results} loading={loading} searched={searched} />
+              
+              {searched && results.length > 0 && (
+                <div className="mt-6">
+                  <Pagination 
+                    currentPage={currentPage}
+                    totalPages={totalPages}
+                    onPageChange={handlePageChange}
+                  />
+                </div>
+              )}
+            </CardContent>
+          </Card>
         </div>
       </main>
 

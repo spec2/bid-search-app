@@ -1,19 +1,22 @@
 "use client";
 
 import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "./ui/card";
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { FileSearch } from 'lucide-react';
 
 interface Bid {
   調達案件名称: string;
   落札決定日: string;
   落札価格: number;
-  companies: { 商号又は名称: string } | null;
-  ministries: { 名称: string } | null;
-  bid_methods: { 名称: string } | null;
+  法人番号: { 商号又は名称: string } | null;
+  府省コード: { 名称: string } | null;
+  入札方式コード: { 名称: string } | null;
 }
 
 interface ResultsTableProps {
@@ -23,58 +26,61 @@ interface ResultsTableProps {
 }
 
 const formatPrice = (price: number) => {
+  if (typeof price !== 'number') return '';
   return new Intl.NumberFormat('ja-JP', { style: 'currency', currency: 'JPY' }).format(price);
 }
 
 const ResultsTable = ({ results, loading, searched }: ResultsTableProps) => {
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center py-12">
+        <div className="loader ease-linear rounded-full border-4 border-t-4 border-gray-200 h-12 w-12 mb-4"></div>
+        <p className="text-muted-foreground">検索中...</p>
+      </div>
+    );
+  }
+
   if (!searched) {
     return null;
   }
+  
+  if (results.length === 0) {
+    return (
+      <div className="text-center py-12 text-muted-foreground">
+        <FileSearch className="mx-auto h-12 w-12" />
+        <h3 className="mt-2 text-sm font-medium text-foreground">検索結果がありません</h3>
+        <p className="mt-1 text-sm">検索条件を変更して、再度お試しください。</p>
+      </div>
+    );
+  }
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>検索結果</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <div className="overflow-x-auto">
-          <table className="min-w-full">
-            <thead className="bg-gray-100">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">調達案件名称</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">事業者名</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">落札決定日</th>
-                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">落札価格</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">府省</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">入札方式</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-200">
-              {loading ? (
-                <tr>
-                  <td colSpan={6} className="text-center py-12 text-gray-500">検索中...</td>
-                </tr>
-              ) : results.length > 0 ? (
-                results.map((bid, index) => (
-                  <tr key={index} className="hover:bg-gray-50 transition-colors">
-                    <td className="px-6 py-4 whitespace-normal text-sm text-gray-800">{bid.調達案件名称}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">{bid.companies?.商号又は名称 || 'N/A'}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">{bid.落札決定日}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600 text-right">{formatPrice(bid.落札価格)}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">{bid.ministries?.名称 || 'N/A'}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">{bid.bid_methods?.名称 || 'N/A'}</td>
-                  </tr>
-                ))
-              ) : (
-                <tr>
-                  <td colSpan={6} className="text-center py-12 text-gray-500">検索結果が見つかりませんでした。</td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
-      </CardContent>
-    </Card>
+    <div className="overflow-x-auto">
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead>調達案件名称</TableHead>
+            <TableHead>事業者名</TableHead>
+            <TableHead>落札決定日</TableHead>
+            <TableHead className="text-right">落札価格</TableHead>
+            <TableHead>府省</TableHead>
+            <TableHead>入札方式</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {results.map((bid, index) => (
+            <TableRow key={index}>
+              <TableCell className="font-medium">{bid.調達案件名称}</TableCell>
+              <TableCell>{bid.法人番号?.商号又は名称 || 'N/A'}</TableCell>
+              <TableCell>{bid.落札決定日}</TableCell>
+              <TableCell className="text-right">{formatPrice(bid.落札価格)}</TableCell>
+              <TableCell>{bid.府省コード?.名称 || 'N/A'}</TableCell>
+              <TableCell>{bid.入札方式コード?.名称 || 'N/A'}</TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+    </div>
   );
 };
 

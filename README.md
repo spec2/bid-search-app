@@ -52,6 +52,12 @@
     cp .env.local.example .env
     ```
 
+    ```txt
+    POSTGRES_USER=
+    POSTGRES_PASSWORD=
+    CLOUDFLARE_TUNNEL_TOKEN=
+    ```
+
 4.  **Dockerコンテナの起動**
     以下のコマンドで、PostgreSQLとPostgRESTのコンテナをバックグラウンドで起動します。
     ```bash
