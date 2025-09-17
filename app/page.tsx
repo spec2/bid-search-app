@@ -1,102 +1,34 @@
 "use client";
 
-import { useState, useEffect, Suspense } from 'react';
-import { useSearchParams, useRouter } from 'next/navigation';
+import { Suspense } from 'react';
+import { Download } from 'lucide-react';
 import Header from './components/Header';
 import Footer from './components/Footer';
 import SearchForm from './components/SearchForm';
 import ResultsTable from './components/ResultsTable';
 import Pagination from './components/Pagination';
+import { Button } from './components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from './components/ui/card';
 import { ResultsTableSkeleton } from './components/ResultsTableSkeleton';
-
-// Define the structure of the search results
-interface Bid {
-  調達案件名称: string;
-  落札決定日: string;
-  落札価格: number;
-  法人番号: { 商号又は名称: string } | null;
-  府省コード: { 名称: string } | null;
-  入札方式コード: { 名称: string } | null;
-}
-
-interface SearchParams {
-  query: string;
-  company: string;
-  ministry: string;
-  startDate: string;
-  endDate: string;
-}
+import { useBidSearch } from '@/lib/hooks/useBidSearch';
+import { exportToCsv } from '@/lib/utils';
+import { format } from 'date-fns';
 
 function SearchPageClient() {
-  const searchParams = useSearchParams();
-  const router = useRouter();
+  const {
+    results,
+    loading,
+    error,
+    page,
+    totalPages,
+    currentSearch,
+    handleSearch,
+    handlePageChange,
+  } = useBidSearch();
 
-  const [results, setResults] = useState<Bid[]>([]);
-  const [loading, setLoading] = useState(true); // Start with loading true for initial fetch
-  const [error, setError] = useState<string | null>(null);
-  const [totalCount, setTotalCount] = useState(0);
-  
-  const page = parseInt(searchParams.get('page') || '1', 10);
-  const limit = 50;
-  const totalPages = Math.ceil(totalCount / limit);
-
-  const currentSearch: SearchParams = {
-    query: searchParams.get('query') || '',
-    company: searchParams.get('company') || '',
-    ministry: searchParams.get('ministry') || '',
-    startDate: searchParams.get('startDate') || '',
-    endDate: searchParams.get('endDate') || '',
-  };
-
-  useEffect(() => {
-    const executeSearch = async () => {
-      setLoading(true);
-      setError(null);
-      
-      try {
-        const params = new URLSearchParams();
-        if (currentSearch.query) params.append('q', currentSearch.query);
-        if (currentSearch.company) params.append('company', currentSearch.company);
-        if (currentSearch.ministry) params.append('ministry', currentSearch.ministry);
-        if (currentSearch.startDate) params.append('startDate', currentSearch.startDate);
-        if (currentSearch.endDate) params.append('endDate', currentSearch.endDate);
-        params.append('page', page.toString());
-
-        const response = await fetch(`/api/search?${params.toString()}`);
-        if (!response.ok) {
-          throw new Error('Network response was not ok');
-        }
-        const data = await response.json();
-        setResults(data.results);
-        setTotalCount(data.totalCount);
-      } catch (e) {
-        setError('検索結果の取得に失敗しました。');
-        console.error(e);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    executeSearch();
-  }, [searchParams]); // Re-run search whenever URL params change
-
-  const handleSearch = (params: SearchParams) => {
-    const newParams = new URLSearchParams();
-    if (params.query) newParams.set('query', params.query);
-    if (params.company) newParams.set('company', params.company);
-    if (params.ministry) newParams.set('ministry', params.ministry);
-    if (params.startDate) newParams.set('startDate', params.startDate);
-    if (params.endDate) newParams.set('endDate', params.endDate);
-    newParams.set('page', '1'); // Reset to first page on new search
-    
-    router.push(`/?${newParams.toString()}`);
-  };
-
-  const handlePageChange = (newPage: number) => {
-    const newParams = new URLSearchParams(searchParams.toString());
-    newParams.set('page', newPage.toString());
-    router.push(`/?${newParams.toString()}`);
+  const handleExport = () => {
+    const timestamp = format(new Date(), 'yyyyMMddHHmmss');
+    exportToCsv(results, `search_results_${timestamp}.csv`);
   };
 
   return (
@@ -128,8 +60,17 @@ function SearchPageClient() {
           {error && <p className="text-center text-destructive mb-4">{error}</p>}
           
           <Card>
-            <CardHeader>
+            <CardHeader className="flex flex-row items-center justify-between">
               <CardTitle>検索結果</CardTitle>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={handleExport} 
+                disabled={loading || results.length === 0}
+              >
+                <Download className="mr-2 h-4 w-4" />
+                CSVエクスポート
+              </Button>
             </CardHeader>
             <CardContent>
               {loading ? (
@@ -159,7 +100,7 @@ function SearchPageClient() {
 
 export default function Home() {
   return (
-    <Suspense fallback={<div>Loading...</div>}>
+    <Suspense fallback={<ResultsTableSkeleton />}>
       <SearchPageClient />
     </Suspense>
   );
