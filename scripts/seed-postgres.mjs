@@ -46,17 +46,23 @@ const batchInsert = async (table, records, columns) => {
     placeholders.push(`(${columns.map((_, i) => `$${placeholders.length * columns.length + i + 1}`).join(', ')})`);
   }
 
-  // Use ON CONFLICT DO NOTHING to ignore duplicates, similar to 'resolution=ignore-duplicates'
   const query = `
     INSERT INTO public."${table}" ("${columns.join('", "')}") 
     VALUES ${placeholders.join(', ')}
     ON CONFLICT DO NOTHING
   `;
 
+  // --- Improved Logging ---
+  const querySummary = `INSERT INTO "${table}" (${records.length} records)`;
+  console.log(`  [DB] Executing: ${querySummary}`);
+
   try {
     await client.query(query, values);
   } catch (e) {
-    console.error(`Failed to insert a batch into ${table}.`, e);
+    console.error(`\n--- FAILED to insert a batch into ${table}. ---`);
+    console.error(`Query Summary: ${querySummary}`);
+    console.error(`Total values to bind: ${values.length}`);
+    console.error("Error Details:", e); // Complete the console.error call
     throw e;
   }
 };
@@ -90,7 +96,19 @@ async function initializeDatabase() {
 async function seedData() {
   const dataDir = join(projectRoot, '..', 'successful-bid-data');
   const allCsvFiles = [
-    'successful_bid_record_info_all_2024.csv', 'successful_bid_record_info_all_2025.csv'
+    'successful_bid_record_info_all_2013.csv',
+    'successful_bid_record_info_all_2014.csv',
+    'successful_bid_record_info_all_2015.csv',
+    'successful_bid_record_info_all_2016.csv',
+    'successful_bid_record_info_all_2017.csv',
+    'successful_bid_record_info_all_2018.csv',
+    'successful_bid_record_info_all_2019.csv',
+    'successful_bid_record_info_all_2020.csv',
+    'successful_bid_record_info_all_2021.csv',
+    'successful_bid_record_info_all_2022.csv',
+    'successful_bid_record_info_all_2023.csv',
+    'successful_bid_record_info_all_2024.csv',
+    'successful_bid_record_info_all_2025.csv'
   ];
   const filesToProcess = targetFile ? [targetFile] : allCsvFiles;
 
@@ -108,7 +126,7 @@ async function seedData() {
     
     let companyBatch = [];
     let bidBatch = [];
-    const batchSize = 500; // Increased batch size for better performance with direct DB connection
+    const batchSize = 7000; // Increased batch size for better performance with direct DB connection
     let processedCount = 0;
 
     for await (const record of parser) {
